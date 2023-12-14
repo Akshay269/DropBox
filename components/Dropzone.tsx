@@ -3,13 +3,13 @@ import {cn} from "@/lib/utils"
 import DropzoneComponent from "react-dropzone";
 import { useState } from "react";
 import {useUser} from "@clerk/nextjs";
-import {addDoc,collection,serverTimestamp} from "firebase/firestore";
+import {addDoc,collection,serverTimestamp,updateDoc,doc} from "firebase/firestore";
 import {db, storage} from "@/firebase";
 import { ref,uploadBytes,getDownloadURL } from "firebase/storage";
 
 
 function Dropzone() {
-  const maxSize = 20971520;
+  
   const [loading, setLoading] = useState(false);
   const {isLoaded,isSignedIn,user}=useUser();
 
@@ -45,7 +45,7 @@ function Dropzone() {
       uploadBytes(imageRef,selectedFile).then(async(snapshot) => {
         const downloadURL=await getDownloadURL(imageRef);
         await updateDoc(doc(db,"users",user.id,"files",docRef.id),{
-          fileUrl:downloadURL,
+          downloadURL:downloadURL,
         });
       });
 
@@ -53,12 +53,13 @@ function Dropzone() {
       setLoading(false);
 
   };
+  const maxSize = 20971520;
 
   return (
     <DropzoneComponent
       minSize={0}
       maxSize={maxSize}
-      onDrop={(acceptedFiles) => console.log(acceptedFiles)}
+      onDrop={onDrop}
     >
       {({
         getRootProps,
